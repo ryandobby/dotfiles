@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+# ──────────────────────────────────────────────────────────────────────────────
+# Enhanced Bash Completion Configuration
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Enable programmable completion
+if ! shopt -oq posix; then
+    # System-wide bash completions
+    if [[ -f /usr/share/bash-completion/bash_completion ]]; then
+        source /usr/share/bash-completion/bash_completion
+    elif [[ -f /etc/bash_completion ]]; then
+        source /etc/bash_completion
+    elif [[ -f /usr/local/etc/bash_completion ]]; then
+        # macOS with Homebrew
+        source /usr/local/etc/bash_completion
+    fi
+fi
+
+# Enhanced completion settings
+bind 'set completion-ignore-case on'          # Case-insensitive completion
+bind 'set show-all-if-ambiguous on'           # Show matches immediately
+bind 'set show-all-if-unmodified on'          # Show matches even if partial
+bind 'set menu-complete-display-prefix on'    # Show common prefix
+bind 'set colored-completion-prefix on'       # Color the prefix
+bind 'set colored-stats on'                   # Color file type indicators
+bind 'set visible-stats on'                   # Show file type indicators
+bind 'set page-completions off'               # Don't paginate completions
+bind 'set skip-completed-text on'             # Skip text already typed
+
+# Custom completion for common tools
+_npm_completion() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    
+    case "$prev" in
+        npm)
+            opts="install run start build test lint dev serve init create"
+            ;;
+        run|start|build|test|lint|dev|serve)
+            # Get scripts from package.json if it exists
+            if [[ -f package.json ]]; then
+                opts=$(grep -o '"[^"]*"' package.json | grep -A 50 '"scripts"' | grep -v '"scripts"' | head -20 | tr -d '"' | tr '\n' ' ')
+            fi
+            ;;
+        *)
+            opts=""
+            ;;
+    esac
+    
+    COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+    return 0
+}
+
+# Git branch completion for custom aliases
+_git_branch_completion() {
+    local cur branches
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    branches=$(git branch 2>/dev/null | sed 's/^..//' | tr '\n' ' ')
+    COMPREPLY=($(compgen -W "${branches}" -- ${cur}))
+}
+
+# Docker completion helpers
+_docker_containers() {
+    local cur
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    COMPREPLY=($(compgen -W "$(docker ps --format '{{.Names}}' 2>/dev/null)" -- ${cur}))
+}
+
+_docker_images() {
+    local cur
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    COMPREPLY=($(compgen -W "$(docker images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null)" -- ${cur}))
+}
+
+# Register completions for custom commands
+complete -F _npm_completion npm
+complete -F _git_branch_completion gco gb  # git checkout, git branch aliases
+complete -F _docker_containers docker-exec
+complete -F _docker_images docker-run
+
+# Directory completion for cd alias if using zoxide
+if command -v zoxide >/dev/null 2>&1; then
+    complete -F _cd z  # Enable directory completion for zoxide
+fi
+
+# SSH hostname completion
+_ssh_completion() {
+    local cur opts
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    opts=$(grep "^Host " ~/.ssh/config 2>/dev/null | awk '{print $2}' | grep -v '*')
+    COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
+}
+complete -F _ssh_completion ssh scp
+
+# GitHub CLI completion
+if command -v gh >/dev/null 2>&1; then
+    eval "$(gh completion -s bash)"
+fi
+
+# Custom completion for common file operations
+_find_files() {
+    local cur
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    COMPREPLY=($(compgen -f -- ${cur}))
+}
+
+# Better file completion for common commands
+complete -f -X '!*.@(js|ts|jsx|tsx|vue)' code vim nvim  # Only code files
+complete -f -X '!*.@(json|yml|yaml|toml)' cat bat       # Config files
+complete -d cd mkdir rmdir                               # Only directories

@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# ──────────────────────────────────────────────────────────────────────────────
+# Bash Configuration
+# ──────────────────────────────────────────────────────────────────────────────
+
+# XDG Base Directory setup
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+
+# Bash configuration directory
+BASH_CONFIG_DIR="$XDG_CONFIG_HOME/bash"
+
+# Create necessary directories
+[[ -d "$BASH_CONFIG_DIR" ]] || mkdir -p "$BASH_CONFIG_DIR"
+[[ -d "$XDG_STATE_HOME/bash" ]] || mkdir -p "$XDG_STATE_HOME/bash"
+[[ -d "$XDG_CACHE_HOME/bash" ]] || mkdir -p "$XDG_CACHE_HOME/bash"
+
+# History configuration
+export HISTFILE="$XDG_STATE_HOME/bash/history"
+export HISTSIZE=50000
+export HISTFILESIZE=100000
+export HISTCONTROL=ignoreboth
+
+# Essential bash options
+shopt -s histappend        # Append to history
+shopt -s checkwinsize      # Update LINES/COLUMNS after each command
+shopt -s cmdhist           # Store multiline commands as single entry
+shopt -s cdspell           # Correct minor spelling errors in cd
+shopt -s dirspell          # Correct spelling errors in directory names
+shopt -s autocd            # cd by typing directory name (bash 4+)
+shopt -s globstar          # Enable ** recursive globbing (bash 4+)
+
+# Safely source files if they exist
+safe_source() {
+    [[ -r "$1" && -f "$1" ]] && source "$1"
+}
+
+# Load configs
+safe_source "$BASH_CONFIG_DIR/exports"
+safe_source "$BASH_CONFIG_DIR/aliases"
+safe_source "$BASH_CONFIG_DIR/completions"
+
+# Setup tools
+command -v starship >/dev/null && eval "$(starship init bash)"
+command -v fzf >/dev/null && source <(fzf --bash)
+command -v zoxide >/dev/null && eval "$(zoxide init bash)"
+command -v phpenv >/dev/null && eval "$(phpenv init -)"
+
+[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
+command -v atuin >/dev/null && eval "$(atuin init bash)"
+
+# Cleanup
+unset -f safe_source

@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# ──────────────────────────────────────────────────────────────────────────────
+# Aliases and Short Commands
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Enhanced ls with eza (fallback to regular ls)
+if command -v eza >/dev/null 2>&1; then
+    alias ls='eza -la --icons --group-directories-first --git'
+    alias sl='eza -la --icons --group-directories-first --git'
+    alias ll='eza -la --icons --group-directories-first --git'
+    alias lt='eza -a --tree --icons --group-directories-first'
+else
+    alias ls='ls -lah'
+    alias sl='ls -lah'
+    alias ll='ls -lah'
+    alias lt='tree'
+fi
+
+# Neovim
+if command -v nvim >/dev/null 2>&1; then
+    alias v='nvim'
+    alias vi='nvim'
+    alias vim='nvim'
+fi
+
+# VS Code
+if command -v code >/dev/null 2>&1; then
+    alias c='code'
+fi
+
+# VS Codium
+if command -v codium >/dev/null 2>&1; then
+    alias c='codium'
+    alias code='codium'
+fi
+
+# Enhanced cat with bat
+command -v bat >/dev/null 2>&1 && alias cat='bat'
+
+# Enhanced find with fd
+command -v fd >/dev/null 2>&1 && alias find='fd'
+
+# Git shortcuts
+alias g='git'
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
+alias gp='git push'
+alias gpl='git pull'
+alias gd='git diff'
+alias gb='git branch'
+alias gco='git checkout'
+alias gl='git log --oneline --decorate --graph'
+
+# Development shortcuts
+alias npm-clean='rm -rf node_modules package-lock.json && npm install'
+alias reload='source ~/.bashrc'
+
+# Docker shortcuts
+alias dc='docker-compose'
+alias dcu='docker-compose up'
+alias dcd='docker-compose down'
+alias dps='docker ps'
+
+# Navigation shortcuts
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+
+# Zoxide integration
+command -v zoxide >/dev/null 2>&1 && alias cd='z'
+
+# Utility aliases
+alias grep='grep --color=auto'
+alias mkdir='mkdir -p'
+alias h='history'
+alias j='jobs'
+alias path='echo $PATH | tr ":" "\n"'
+
+# Package management
+if command -v pacman &> /dev/null; then
+    # Arch
+    alias install='sudo pacman -S'
+    alias upgrade='sudo pacman -Syu'
+    alias search='pacman -Ss'
+    alias remove='sudo pacman -R'
+    alias autoremove='sudo pacman -Rs $(pacman -Qtdq)'
+elif command -v apt &> /dev/null; then
+    # Debian / Ubuntu
+    alias install='sudo apt install'
+    alias upgrade='sudo apt update && sudo apt upgrade -y'
+    alias remove='sudo apt remove'
+    alias autoremove='sudo apt autoremove'
+fi
