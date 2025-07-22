@@ -1,5 +1,13 @@
 # dotfiles
 
+## Install
+
+Install chezmoi and apply files, requires curl to be installed
+
+```bash
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply git@github.com:$ryandobby/dotfiles.git
+```
+
 ## bash
 
 - bashrc, aliases, exports, completions
